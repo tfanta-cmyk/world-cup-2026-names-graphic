@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>96 Years of World Cup Data</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:#1a2e1a;display:flex;flex-direction:column;align-items:center;padding:28px 16px;}
+.scale-wrap{width:100%;overflow-x:auto;display:flex;justify-content:center;}
+#exportBtn{margin-bottom:22px;background:#f0c040;color:#0d1f0d;border:none;border-radius:8px;padding:12px 32px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:0.04em;text-transform:uppercase;}
+#exportBtn:hover{background:#e0b030;}
+#graphic{width:1200px;overflow:hidden;font-family:'Inter',sans-serif;}
+
+.header-band{
+  position:relative;overflow:hidden;
+  background:#1a4a1a;
+  padding:28px 44px 22px;
+  border-bottom:4px solid #f0c040;
+}
+.pitch-stripes{
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  background-image:repeating-linear-gradient(
+    180deg,
+    rgba(0,0,0,0) 0px, rgba(0,0,0,0) 24px,
+    rgba(0,0,0,0.18) 24px, rgba(0,0,0,0.18) 48px
+  );
+  pointer-events:none;
+}
+.centre-circle{
+  position:absolute;right:-60px;top:50%;transform:translateY(-50%);
+  width:200px;height:200px;border-radius:50%;
+  border:2px solid rgba(255,255,255,0.12);
+  pointer-events:none;
+}
+.penalty-arc{
+  position:absolute;left:-30px;top:50%;transform:translateY(-50%);
+  width:120px;height:120px;border-radius:50%;
+  border:2px solid rgba(255,255,255,0.08);
+  pointer-events:none;
+}
+.header-content{position:relative;z-index:2;display:flex;align-items:flex-start;gap:20px;}
+.header-text{}
+.headline{font-family:'Oswald',sans-serif;font-size:27px;font-weight:700;color:#fff;line-height:1.18;letter-spacing:0.01em;}
+.headline em{color:#f0c040;font-style:normal;}
+.subline{display:flex;gap:0;margin-top:12px;}
+.subline-item{font-size:11px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.1em;padding-right:18px;margin-right:18px;border-right:1px solid rgba(255,255,255,0.2);}
+.subline-item:last-child{border-right:none;}
+.subline-item b{color:#f0c040;font-weight:700;}
+
+.pitch-divider{
+  height:28px;
+  background-image:repeating-linear-gradient(
+    90deg,
+    #2d6e2d 0px, #2d6e2d 40px,
+    #246024 40px, #246024 80px
+  );
+  position:relative;
+  border-top:2px solid rgba(255,255,255,0.15);
+  border-bottom:2px solid rgba(255,255,255,0.15);
+}
+.midfield-line{position:absolute;left:50%;top:0;bottom:0;width:2px;background:rgba(255,255,255,0.2);transform:translateX(-50%);}
+.centre-spot{position:absolute;left:50%;top:50%;width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.4);transform:translate(-50%,-50%);}
+
+.body-band{
+  background:#f5f4ef;
+  padding:22px 44px 20px;
+}
+
+.section-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.section-badge{font-family:'Oswald',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;padding:4px 12px;border-radius:2px;}
+.section-badge.names{background:#1a4a1a;color:#f0c040;}
+.section-badge.months{background:#7c2d12;color:#fed7aa;}
+.section-badge.signs{background:#1e1050;color:#c4b5fd;}
+.section-rule{flex:1;height:1px;}
+.section-rule.names{background:rgba(26,74,26,0.3);}
+.section-rule.months{background:rgba(124,45,18,0.3);}
+.section-rule.signs{background:rgba(30,16,80,0.3);}
+
+.names-list{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;}
+.name-row{display:flex;align-items:center;background:#fff;border-radius:3px;overflow:hidden;border:1px solid #e5e3dc;}
+.name-rank-box{background:#1a4a1a;color:#f0c040;font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;width:42px;min-width:42px;height:38px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.name-rank-box.tied{background:#265526;}
+.name-text{font-family:'Oswald',sans-serif;font-size:17px;font-weight:600;color:#1a4a1a;padding:0 12px;width:100px;min-width:100px;letter-spacing:0.02em;}
+.name-bar-section{flex:1;padding:0 10px;display:flex;align-items:center;gap:8px;}
+.name-bar-outer{flex:1;height:9px;background:#e5f0e5;border-radius:2px;overflow:hidden;}
+.name-bar-inner{height:100%;background:#1a4a1a;border-radius:2px;}
+.name-count{font-size:11px;font-weight:700;color:#1a4a1a;min-width:62px;text-align:right;}
+.name-examples-cell{border-left:1px solid #e5e3dc;padding:0 11px;min-width:296px;max-width:296px;display:flex;align-items:center;flex-wrap:wrap;gap:3px;}
+.star-pill{display:inline-flex;align-items:center;gap:3px;background:#fffbeb;border:1px solid #f0c040;border-radius:20px;padding:2px 8px;font-size:9.5px;font-weight:600;color:#78350f;white-space:nowrap;}
+.star-icon{color:#f0c040;font-size:8px;}
+
+.disclaimer{font-size:9.5px;color:#888;margin-top:4px;margin-bottom:18px;display:flex;align-items:center;gap:5px;font-style:italic;}
+
+.bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.bottom-card{border-radius:4px;overflow:hidden;border:1px solid #e5e3dc;}
+
+.bottom-card-header{padding:9px 14px;display:flex;align-items:center;gap:8px;}
+.bottom-card-header.months{
+  background:#7c2d12;
+}
+.bottom-card-header.signs{background:#1e1050;}
+.bottom-card-title{font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;}
+.bottom-card-title.months{color:#fed7aa;}
+.bottom-card-title.signs{color:#c4b5fd;}
+.header-icon{font-size:18px;}
+
+.bottom-card-body{padding:11px 14px;display:flex;flex-direction:column;gap:9px;background:#fff;}
+.stat-row{display:flex;align-items:flex-start;gap:10px;}
+.stat-rank-circle{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;}
+.stat-rank-circle.months{background:#ffedd5;color:#7c2d12;}
+.stat-rank-circle.signs{background:#ede9fe;color:#3c3489;}
+.stat-content{flex:1;min-width:0;}
+.stat-name{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;color:#1a1a1a;line-height:1;}
+.stat-count{font-size:10px;font-weight:700;margin:2px 0 4px;}
+.stat-count.months{color:#c2410c;}
+.stat-count.signs{color:#534AB7;}
+.stat-bar-bg{height:4px;border-radius:2px;overflow:hidden;margin-bottom:4px;}
+.stat-bar-bg.months{background:#ffedd5;}
+.stat-bar-bg.signs{background:#ede9fe;}
+.stat-bar-fill{height:100%;border-radius:2px;}
+.stat-bar-fill.months{background:#ea580c;}
+.stat-bar-fill.signs{background:#534AB7;}
+.stat-pills{display:flex;flex-wrap:wrap;gap:3px;}
+.stat-pill{display:inline-flex;align-items:center;gap:3px;background:#f9f8f4;border:1px solid #e5e3dc;border-radius:20px;padding:2px 8px 2px 5px;font-size:9.5px;font-weight:500;color:#374151;white-space:nowrap;}
+
+.footer-band{
+  background-image:repeating-linear-gradient(90deg,#1a4a1a 0px,#1a4a1a 40px,#153c15 40px,#153c15 80px);
+  padding:10px 44px;display:flex;align-items:center;justify-content:space-between;
+  border-top:3px solid #f0c040;
+}
+.footer-left{font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:0.06em;text-transform:uppercase;}
+.footer-right{font-size:10px;color:rgba(255,255,255,0.3);font-style:italic;}
+</style>
+</head>
+<body>
+
+<button id="exportBtn" onclick="exportPNG()">⬇ Download as PNG</button>
+
+<div class="scale-wrap"><div id="graphic">
+
+  <div class="header-band">
+    <div class="pitch-stripes"></div>
+    <div class="centre-circle"></div>
+    <div class="penalty-arc"></div>
+    <div class="header-content" style="position:relative;z-index:2;">
+
+      <div class="header-text">
+        <div class="headline">96 Years of World Cup Data:<br>The Most Common Names, Birth Months and Star Signs Across <span style="color:#fff;font-style:normal;">9,000+ Players</span></div>
+        <div class="subline">
+          <div class="subline-item"><b>1930</b> to <b>2026</b></div>
+          <div class="subline-item"><b>23</b> Tournaments</div>
+          <div class="subline-item"><b>9,000+</b> Players analyzed</div>
+          <div class="subline-item"><b>3,700+</b> Distinct first names</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pitch-divider">
+    <div class="midfield-line"></div>
+    <div class="centre-spot"></div>
+  </div>
+
+  <div class="body-band">
+
+    <div class="section-header">
+      <div class="section-badge names">⚽ The Most Common First Names</div>
+      <div class="section-rule names"></div>
+    </div>
+
+    <div class="names-list">
+      <div class="name-row">
+        <div class="name-rank-box">1.</div>
+        <div class="name-text">Carlos</div>
+        <div class="name-bar-section"><div class="name-bar-outer"><div class="name-bar-inner" style="width:100%"></div></div><div class="name-count">78 players</div></div>
+        <div class="name-examples-cell"><span class="star-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/br.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> Carlos Alberto</span><span class="star-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/co.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> Carlos Valderrama</span></div>
+      </div>
+      <div class="name-row">
+        <div class="name-rank-box tied">2.-3.</div>
+        <div class="name-text">Luis</div>
+        <div class="name-bar-section"><div class="name-bar-outer"><div class="name-bar-inner" style="width:78%"></div></div><div class="name-count">61 players</div></div>
+        <div class="name-examples-cell"><span class="star-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/uy.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> Luis Suárez</span><span class="star-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/pt.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> Luis Figo</span></div>
+      </div>
+      <div class="name-row">
+        <div class="name-rank-box tied">2.-3.</div>
+        <div class="name-text">José</div>
+        <div class="name-bar-section"><div class="name-bar-outer"><div class="name-bar-inner" style="width:78%"></div></div><div class="name-count">61 players</div></div>
+        <div class="name-examples-cell"><span class="star-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/uy.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> José Nasazzi</span><span class="star-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/br.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> José Altafini</span></div>
+      </div>
+      <div class="name-row">
+        <div class="name-rank-box">4.</div>
+        <div class="name-text">David</div>
+        <div class="name-bar-section"><div class="name-bar-outer"><div class="name-bar-inner" style="width:65%"></div></div><div class="name-count">51 players</div></div>
+        <div class="name-examples-cell"><span class="star-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/gb-eng.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> David Beckham</span><span class="star-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/es.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> David Villa</span></div>
+      </div>
+      <div class="name-row">
+        <div class="name-rank-box">5.</div>
+        <div class="name-text">Mario</div>
+        <div class="name-bar-section"><div class="name-bar-outer"><div class="name-bar-inner" style="width:63%"></div></div><div class="name-count">49 players</div></div>
+        <div class="name-examples-cell"><span class="star-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/ar.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> Mario Kempes</span><span class="star-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/de.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> Mario Götze</span></div>
+      </div>
+      <div class="name-row">
+        <div class="name-rank-box">6.</div>
+        <div class="name-text">John</div>
+        <div class="name-bar-section"><div class="name-bar-outer"><div class="name-bar-inner" style="width:60%"></div></div><div class="name-count">47 players</div></div>
+        <div class="name-examples-cell"><span class="star-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/gb-eng.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> John Barnes</span><span class="star-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/gb-sct.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> John Collins</span></div>
+      </div>
+      <div class="name-row">
+        <div class="name-rank-box">7.</div>
+        <div class="name-text">Roberto</div>
+        <div class="name-bar-section"><div class="name-bar-outer"><div class="name-bar-inner" style="width:56%"></div></div><div class="name-count">44 players</div></div>
+        <div class="name-examples-cell"><span class="star-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/it.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> Roberto Baggio</span><span class="star-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/br.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> Roberto Rivelino</span></div>
+      </div>
+      <div class="name-row">
+        <div class="name-rank-box">8.</div>
+        <div class="name-text">Peter</div>
+        <div class="name-bar-section"><div class="name-bar-outer"><div class="name-bar-inner" style="width:54%"></div></div><div class="name-count">42 players</div></div>
+        <div class="name-examples-cell"><span class="star-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/dk.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> Peter Schmeichel</span><span class="star-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/gb-eng.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> Peter Shilton</span></div>
+      </div>
+      <div class="name-row">
+        <div class="name-rank-box">9.</div>
+        <div class="name-text">Daniel</div>
+        <div class="name-bar-section"><div class="name-bar-outer"><div class="name-bar-inner" style="width:53%"></div></div><div class="name-count">41 players</div></div>
+        <div class="name-examples-cell"><span class="star-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/ar.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> Daniel Passarella</span><span class="star-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/ng.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> Daniel Amokachi</span></div>
+      </div>
+      <div class="name-row">
+        <div class="name-rank-box">10.</div>
+        <div class="name-text">Jorge</div>
+        <div class="name-bar-section"><div class="name-bar-outer"><div class="name-bar-inner" style="width:50%"></div></div><div class="name-count">39 players</div></div>
+        <div class="name-examples-cell"><span class="star-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/ar.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> Jorge Valdano</span><span class="star-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/mx.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> Jorge Campos</span></div>
+      </div>
+    </div>
+
+    <div class="bottom-grid">
+
+      <div class="bottom-card">
+        <div class="bottom-card-header months">
+          <span class="header-icon">📅</span>
+          <div class="bottom-card-title months">The Most Common Birth Months</div>
+        </div>
+        <div class="bottom-card-body">
+          <div class="stat-row">
+            <div class="stat-rank-circle months">1</div>
+            <div class="stat-content">
+              <div class="stat-name">January</div>
+              <div class="stat-count months">920 players</div>
+              <div class="stat-bar-bg months"><div class="stat-bar-fill months" style="width:100%"></div></div>
+              <div class="stat-pills"><div class="stat-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/uy.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> Luis Suárez (Jan 24)</div><div class="stat-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/be.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> Eden Hazard (Jan 7)</div></div>
+            </div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-rank-circle months">2</div>
+            <div class="stat-content">
+              <div class="stat-name">March</div>
+              <div class="stat-count months">855 players</div>
+              <div class="stat-bar-bg months"><div class="stat-bar-fill months" style="width:93%"></div></div>
+              <div class="stat-pills"><div class="stat-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/br.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> Ronaldinho (Mar 21)</div><div class="stat-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/hr.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> Ivan Rakitić (Mar 10)</div></div>
+            </div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-rank-circle months">3</div>
+            <div class="stat-content">
+              <div class="stat-name">February</div>
+              <div class="stat-count months">844 players</div>
+              <div class="stat-bar-bg months"><div class="stat-bar-fill months" style="width:92%"></div></div>
+              <div class="stat-pills"><div class="stat-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/pt.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> Cristiano Ronaldo (Feb 5)</div><div class="stat-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/br.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> Neymar (Feb 5)</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-card">
+        <div class="bottom-card-header signs">
+          <span class="header-icon">✨</span>
+          <div class="bottom-card-title signs">The Most Common Star Signs</div>
+        </div>
+        <div class="bottom-card-body">
+          <div class="stat-row">
+            <div class="stat-rank-circle signs">1</div>
+            <div class="stat-content">
+              <div class="stat-name">♒ Aquarius</div>
+              <div class="stat-count signs">874 players</div>
+              <div class="stat-bar-bg signs"><div class="stat-bar-fill signs" style="width:100%"></div></div>
+              <div class="stat-pills"><div class="stat-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/pt.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> Cristiano Ronaldo</div><div class="stat-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/br.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> Neymar</div></div>
+            </div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-rank-circle signs">2</div>
+            <div class="stat-content">
+              <div class="stat-name">♓ Pisces</div>
+              <div class="stat-count signs">869 players</div>
+              <div class="stat-bar-bg signs"><div class="stat-bar-fill signs" style="width:99%"></div></div>
+              <div class="stat-pills"><div class="stat-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/hr.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> Ivan Rakitić</div><div class="stat-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/es.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> Fernando Torres</div></div>
+            </div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-rank-circle signs">3</div>
+            <div class="stat-content">
+              <div class="stat-name">♑ Capricorn</div>
+              <div class="stat-count signs">813 players</div>
+              <div class="stat-bar-bg signs"><div class="stat-bar-fill signs" style="width:93%"></div></div>
+              <div class="stat-pills"><div class="stat-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/be.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> Eden Hazard</div><div class="stat-pill"><span class="star-icon">★</span> <img src="https://flagcdn.com/16x12/hr.png" width="16" height="12" crossorigin="anonymous" style="vertical-align:middle;border-radius:1px;"> Davor Šuker</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+
+    <div class="disclaimer" style="margin-top:12px;margin-bottom:0;font-size:9.5px;color:#888;display:flex;align-items:center;gap:5px;font-style:italic;">
+      <span style="color:#f0c040;font-style:normal;font-size:11px;">★</span>
+      Notable examples only — many more players share each name across 96 years of tournament history.
+    </div>
+
+  </div>
+
+  <div class="footer-band">
+    <div class="footer-left">Source: VegasInsider.com</div>
+  </div>
+
+</div>
+</div>
+
+<script>
+function exportPNG(){
+  const btn=document.getElementById('exportBtn');
+  btn.textContent='Generating…';btn.disabled=true;
+  html2canvas(document.getElementById('graphic'),{
+    scale:2,useCORS:true,allowTaint:false,backgroundColor:'#1a4a1a',logging:false
+  }).then(canvas=>{
+    const link=document.createElement('a');
+    link.download='wc-data-infographic.png';
+    link.href=canvas.toDataURL('image/png');
+    link.click();
+    btn.textContent='⬇ Download as PNG';btn.disabled=false;
+  });
+}
+</script>
+</body>
+</html>
